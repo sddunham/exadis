@@ -152,7 +152,7 @@ struct Crystal : CrystalParams
             ref_burgs(6) = 2.0/sqrt(3.0) * Vec3(0.0, 0.0, 1.0);
             
             // Habit planes
-            num_planes = 4*(3+3)+3*16;
+            num_planes = 4*(3+3+6)+3*16;
             Kokkos::resize(ref_planes, num_planes);
             Kokkos::resize(planes_per_burg, num_burgs);
             Kokkos::resize(burg_start_plane, num_burgs);
@@ -161,16 +161,25 @@ struct Crystal : CrystalParams
             for (int i = 0; i < 4; i++) {
                 Vec3 b = ref_burgs(i);
                 // {110} planes
-                ref_planes(i*6+0) = Vec3(-1.0*b.x, b.y, 0.0).normalized();
-                ref_planes(i*6+1) = Vec3(0.0, -1.0*b.y, b.z).normalized();
-                ref_planes(i*6+2) = Vec3(b.x, 0.0, -1.0*b.z).normalized();
+                ref_planes(i*12+0) = Vec3(-1.0*b.x, b.y, 0.0).normalized();
+                ref_planes(i*12+1) = Vec3(0.0, -1.0*b.y, b.z).normalized();
+                ref_planes(i*12+2) = Vec3(b.x, 0.0, -1.0*b.z).normalized();
                 // {112} planes
-                ref_planes(i*6+3) = Vec3(-2.0*b.x, b.y, b.z).normalized();
-                ref_planes(i*6+4) = Vec3(b.x, -2.0*b.y, b.z).normalized();
-                ref_planes(i*6+5) = Vec3(b.x, b.y, -2.0*b.z).normalized();
+                ref_planes(i*12+3) = Vec3(-2.0*b.x, b.y, b.z).normalized();
+                ref_planes(i*12+4) = Vec3(b.x, -2.0*b.y, b.z).normalized();
+                ref_planes(i*12+5) = Vec3(b.x, b.y, -2.0*b.z).normalized();
+                // {123} planes
+                ref_planes(i*12+6)  = Vec3(      b.x,  2.0*b.y, -3.0*b.z ).normalized();
+                ref_planes(i*12+7)  = Vec3(      b.x, -3.0*b.y,  2.0*b.z ).normalized();
+                ref_planes(i*12+8)  = Vec3(  2.0*b.x,      b.y, -3.0*b.z ).normalized();
+                ref_planes(i*12+9)  = Vec3(  2.0*b.x, -3.0*b.y,      b.z ).normalized();
+                ref_planes(i*12+10) = Vec3( -3.0*b.x,      b.y,  2.0*b.z ).normalized();
+                ref_planes(i*12+11) = Vec3( -3.0*b.x,  2.0*b.y,      b.z ).normalized();
                 // Indexing
-                planes_per_burg(i) = 6;
-                burg_start_plane(i) = i*6;
+                // planes_per_burg(i) = 6;
+                // burg_start_plane(i) = i*6;
+                planes_per_burg(i) = 12;
+                burg_start_plane(i) = i*12;
             }
             
             // <100> Burgers
@@ -197,12 +206,22 @@ struct Crystal : CrystalParams
                 }
             }
             
+            // // Slip systems: only register the 1/2<111>{110} systems for now
+            // // For BCC this is only used in network generatation functions
+            // num_sys = 12;
+            // Kokkos::resize(ref_sys, num_sys, 2);
+            // for (int i = 0; i < 4; i++) {
+            //     for (int j = 0; j < 3; j++) {
+            //         ref_sys(i*3+j,0) = i; // Burgers index
+            //         ref_sys(i*3+j,1) = burg_start_plane(i)+j; // Plane index
+            //     }
+            // }
             // Slip systems: only register the 1/2<111>{110} systems for now
             // For BCC this is only used in network generatation functions
-            num_sys = 12;
+            num_sys = 48;
             Kokkos::resize(ref_sys, num_sys, 2);
             for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 3; j++) {
+                for (int j = 0; j < 12; j++) {
                     ref_sys(i*3+j,0) = i; // Burgers index
                     ref_sys(i*3+j,1) = burg_start_plane(i)+j; // Plane index
                 }
