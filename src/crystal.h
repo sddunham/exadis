@@ -12,6 +12,7 @@
 #define EXADIS_CRYSTAL_H
 
 #include "types.h"
+#include <iostream>
 
 #ifndef EXADIS_SYSTEM_H
 namespace ExaDiS { class System; } // forward declaration
@@ -152,7 +153,7 @@ struct Crystal : CrystalParams
             ref_burgs(6) = 2.0/sqrt(3.0) * Vec3(0.0, 0.0, 1.0);
             
             // Habit planes
-            num_planes = 4*(3+3+6)+3*16;
+            num_planes = 4*(3+3+6) + 3*56;
             Kokkos::resize(ref_planes, num_planes);
             Kokkos::resize(planes_per_burg, num_burgs);
             Kokkos::resize(burg_start_plane, num_burgs);
@@ -176,8 +177,6 @@ struct Crystal : CrystalParams
                 ref_planes(i*12+10) = Vec3( -3.0*b.x,      b.y,  2.0*b.z ).normalized();
                 ref_planes(i*12+11) = Vec3( -3.0*b.x,  2.0*b.y,      b.z ).normalized();
                 // Indexing
-                // planes_per_burg(i) = 6;
-                // burg_start_plane(i) = i*6;
                 planes_per_burg(i) = 12;
                 burg_start_plane(i) = i*12;
             }
@@ -186,23 +185,43 @@ struct Crystal : CrystalParams
             std::vector<Vec3> pref100 = {
                 Vec3( 1.0, 0.0, 0.0), Vec3( 0.0, 1.0, 0.0), // {100}
                 Vec3( 1.0, 1.0, 0.0), Vec3( 1.0,-1.0, 0.0), // {110}
-                Vec3( 2.0, 1.0, 0.0), Vec3( 2.0,-1.0, 0.0), // {210}
+                Vec3( 2.0, 1.0, 0.0), Vec3( 2.0,-1.0, 0.0), // {210} 
                 Vec3( 1.0, 2.0, 0.0), Vec3( 1.0,-2.0, 0.0),
                 Vec3( 3.0, 1.0, 0.0), Vec3( 3.0,-1.0, 0.0), // {310}
                 Vec3( 1.0, 3.0, 0.0), Vec3( 1.0,-3.0, 0.0),
                 Vec3( 5.0, 1.0, 0.0), Vec3( 5.0,-1.0, 0.0), // {510}
                 Vec3( 1.0, 5.0, 0.0), Vec3( 1.0,-5.0, 0.0),
+                Vec3( 4.0, 1.0, 0.0), Vec3( 4.0,-1.0, 0.0), // {410}
+                Vec3( 1.0, 4.0, 0.0), Vec3( 1.0,-4.0, 0.0),
+                Vec3( 7.0, 1.0, 0.0), Vec3( 7.0,-1.0, 0.0), // {710}
+                Vec3( 1.0, 7.0, 0.0), Vec3( 1.0,-7.0, 0.0),
+                Vec3( 5.0, 3.0, 0.0), Vec3( 5.0,-3.0, 0.0), // {530}
+                Vec3( 3.0, 5.0, 0.0), Vec3( 3.0,-5.0, 0.0),
+                Vec3( 7.0, 3.0, 0.0), Vec3( 7.0,-3.0, 0.0), // {730}
+                Vec3( 3.0, 7.0, 0.0), Vec3( 3.0,-7.0, 0.0),
+                Vec3( 5.0, 2.0, 0.0), Vec3( 5.0,-2.0, 0.0), // {520}
+                Vec3( 2.0, 5.0, 0.0), Vec3( 2.0,-5.0, 0.0),
+                Vec3( 5.0, 7.0, 0.0), Vec3( 5.0,-7.0, 0.0), // {570}
+                Vec3( 7.0, 5.0, 0.0), Vec3( 7.0,-5.0, 0.0),
+                Vec3( 5.0, 9.0, 0.0), Vec3( 5.0,-9.0, 0.0), // {590}
+                Vec3( 9.0, 5.0, 0.0), Vec3( 9.0,-5.0, 0.0),
+                Vec3( 11.0, 1.0, 0.0), Vec3( 11.0,-1.0, 0.0), // {11 1 0}
+                Vec3( 1.0, 11.0, 0.0), Vec3( 1.0,-11.0, 0.0),
+                Vec3( 11.0, 5.0, 0.0), Vec3( 11.0,-5.0, 0.0), // {11 5 0}
+                Vec3( 5.0, 11.0, 0.0), Vec3( 5.0,-11.0, 0.0),
+                Vec3( 13.0, 1.0, 0.0), Vec3( 13.0,-1.0, 0.0), // {13 1 0}
+                Vec3( 1.0, 13.0, 0.0), Vec3( 1.0,-13.0, 0.0),
             };
             for (int i = 0; i < 3; i++) {
                 // Indexing
-                planes_per_burg(4+i) = 16;
-                burg_start_plane(4+i) = 4*6+i*16;
+                planes_per_burg(4+i) = 56;
+                burg_start_plane(4+i) = 4*12+i*56;
                 // <100> zonal planes
-                for (int j = 0; j < 16; j++) {
+                for (int j = 0; j < 56; j++) {
                     Vec3 pj(0.0);
                     pj[(i+1)%3] = pref100[j].x;
                     pj[(i+2)%3] = pref100[j].y;
-                    ref_planes(4*6+i*16+j) = pj.normalized();
+                    ref_planes(4*12+i*56+j) = pj.normalized();
                 }
             }
             
@@ -222,8 +241,8 @@ struct Crystal : CrystalParams
             Kokkos::resize(ref_sys, num_sys, 2);
             for (int i = 0; i < 4; i++) {
                 for (int j = 0; j < 12; j++) {
-                    ref_sys(i*3+j,0) = i; // Burgers index
-                    ref_sys(i*3+j,1) = burg_start_plane(i)+j; // Plane index
+                    ref_sys(i*12+j,0) = i; // Burgers index
+                    ref_sys(i*12+j,1) = burg_start_plane(i)+j; // Plane index
                 }
             }
             
@@ -325,8 +344,11 @@ struct Crystal : CrystalParams
             for (int j = 0; j < planes_per_burg(i); j++) {
                 int s = burg_start_plane(i);
                 Vec3 n = ref_planes(s+j);
-                if (dot(b, n) > 1e-5)
+                if (dot(b, n) > 1e-5){
+                    std::cout << "b = " << b.x << "," << b.y << "," << b.z << "\n";
+                    std::cout << "n = " << n.x << "," << n.y << "," << n.z << "\n";
                     ExaDiS_fatal("Error: Burgers and plane normals are not orthogonal for crystal type = %d\n", type);
+                }
             }
         }
         for (int i = 0; i < num_sys; i++) {
